@@ -402,4 +402,4 @@ We continue to use AI in the project, but with realistic expectations:
 
 ---
 
-**Important Note**: This document reflects the real reality of working with AI in software development. AI is a powerful tool that saves time, but requires control, understanding, and significant manual work. There are no shortcuts in learning and understanding code.
+**Important Note**: This document reflects the reality of working with AI in software development. AI is a powerful tool that saves time, but requires control, understanding, and significant manual work. There are no shortcuts in learning and understanding code.
