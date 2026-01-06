@@ -527,7 +527,7 @@ export function ForumPage({ onNavigateHome, onNavigateNewQuestion, onNavigatePos
 
               {/* Pagination */}
               {totalPages > 1 && (
-              <div className="flex flex-col items-center gap-4 pt-8">
+              <div className="flex flex-col items-center gap-4 pt-8 pb-8">
                 <div className="text-sm text-gray-600">
                   מציג {(currentPage - 1) * itemsPerPage + 1}-
                   {Math.min(currentPage * itemsPerPage, filteredQuestions.length)} מתוך{' '}
@@ -582,7 +582,7 @@ export function ForumPage({ onNavigateHome, onNavigateNewQuestion, onNavigatePos
             </div>
           </TabsContent>
 
-          <TabsContent value="unanswered" className="space-y-6 mt-6">
+          <TabsContent value="unanswered" className="space-y-6 mt-6 pb-8">
             <div className="space-y-6">
               <ForumFilters
                 searchQuery={searchQuery}
@@ -603,7 +603,7 @@ export function ForumPage({ onNavigateHome, onNavigateNewQuestion, onNavigatePos
 
 
 
-          <TabsContent value="mine" className="space-y-6 mt-6">
+          <TabsContent value="mine" className="space-y-6 mt-6 pb-8">
             <div className="space-y-6">
               <ForumFilters
                 searchQuery={searchQuery}
@@ -627,7 +627,7 @@ export function ForumPage({ onNavigateHome, onNavigateNewQuestion, onNavigatePos
                   {onNavigateNewQuestion && (
                     <Button 
                       onClick={onNavigateNewQuestion}
-                      className="bg-gray-900 hover:bg-gray-800 text-white mt-4">
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white mt-4">
                       שאל שאלה ראשונה
                     </Button>
                   )}
