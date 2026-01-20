@@ -105,7 +105,7 @@ export function SummaryDetailPage({ summaryId, onNavigateHome, onNavigateSummari
             // Check if summary is in favorites
             const favoritesResponse = await api.get('/favorites');
             const isInFavorites = favoritesResponse.data.some(
-              (fav: any) => fav.summaryId === parseInt(summaryId)
+              (fav: { summaryId?: number; toolId?: number }) => fav.summaryId === parseInt(summaryId)
             );
             setIsFavorite(isInFavorites);
           } catch (err) {
