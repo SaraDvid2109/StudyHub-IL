@@ -22,6 +22,8 @@ interface ApiSummary {
   filePath: string;
   uploadDate: string;
   avgRating: number | null;
+  viewCount: number;
+  downloadCount: number;
   courseId: number;
   uploadedById: number;
   course: {
@@ -117,8 +119,8 @@ export function SummariesPage({ onNavigateHome, onNavigateUpload, onNavigateSumm
             institution: summary.course.institution,
             rating: summary.avgRating || 0,
             ratingCount: summary._count.ratings,
-            views: 0, // Not tracked in current schema
-            downloads: 0, // Not tracked in current schema
+            views: summary.viewCount || 0,
+            downloads: summary.downloadCount || 0,
             comments: summary._count.comments,
             fileType: fileExtension,
             fileSize: '', // Not available without fetching file

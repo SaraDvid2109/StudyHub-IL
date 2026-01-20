@@ -71,6 +71,8 @@ model Summary {
   filePath    String
   uploadDate  DateTime  @default(now())
   avgRating   Float?
+  viewCount   Int       @default(0)
+  downloadCount Int     @default(0)
   
   courseId    Int
   course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
