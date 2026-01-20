@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 import { useState, useEffect } from 'react';
-import { ChevronRight, Home, FileText, Download, Star, MessageCircle, Send, User } from 'lucide-react';
+import { ChevronRight, Home, FileText, Download, Star, MessageCircle, Send, User, Heart, Eye } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Textarea } from '../ui/textarea';
@@ -25,6 +25,8 @@ interface Summary {
   filePath: string;
   uploadDate: string;
   avgRating: number | null;
+  views?: number;
+  downloads?: number;
   course: {
     id: number;
     courseCode: string;
@@ -59,6 +61,8 @@ export function SummaryDetailPage({ summaryId, onNavigateHome, onNavigateSummari
   const [hoverRating, setHoverRating] = useState<number | null>(null);
   const [ratingSubmitting, setRatingSubmitting] = useState(false);
   const [totalRatings, setTotalRatings] = useState(0);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
 
   // Helper to get initials from name
   const getInitials = (name: string) => {
@@ -97,6 +101,13 @@ export function SummaryDetailPage({ summaryId, onNavigateHome, onNavigateSummari
           try {
             const ratingsResponse = await api.get(`/summaries/${summaryId}/ratings`);
             setUserRating(ratingsResponse.data.userRating);
+            
+            // Check if summary is in favorites
+            const favoritesResponse = await api.get('/favorites');
+            const isInFavorites = favoritesResponse.data.some(
+              (fav: { summaryId?: number; toolId?: number }) => fav.summaryId === parseInt(summaryId)
+            );
+            setIsFavorite(isInFavorites);
           } catch (err) {
             console.error('Error fetching rating:', err);
           }
@@ -138,6 +149,30 @@ export function SummaryDetailPage({ summaryId, onNavigateHome, onNavigateSummari
       alert(err.response?.data?.error || 'שגיאה בשמירת דירוג');
     } finally {
       setRatingSubmitting(false);
+    }
+  };
+
+  // Handle favorite toggle
+  const handleFavorite = async () => {
+    if (!user) {
+      alert('יש להתחבר כדי להוסיף למועדפים');
+      return;
+    }
+
+    try {
+      setFavoriteLoading(true);
+      if (isFavorite) {
+        await api.delete(`/favorites/summary/${summaryId}`);
+        setIsFavorite(false);
+      } else {
+        await api.post(`/favorites/summary/${summaryId}`);
+        setIsFavorite(true);
+      }
+    } catch (err: any) {
+      console.error('Error toggling favorite:', err);
+      alert(err.response?.data?.error || 'שגיאה בעדכון מועדפים');
+    } finally {
+      setFavoriteLoading(false);
     }
   };
 
@@ -251,6 +286,16 @@ export function SummaryDetailPage({ summaryId, onNavigateHome, onNavigateSummari
                   <span>{summary.avgRating.toFixed(1)}</span>
                 </div>
               )}
+              <Button
+                onClick={handleFavorite}
+                disabled={favoriteLoading || !user}
+                variant="outline"
+                className="border-gray-300 hover:bg-gray-50"
+              >
+                <Heart
+                  className={`w-4 h-4 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`}
+                />
+              </Button>
               <Button 
                 onClick={handleDownload}
                 className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
@@ -283,6 +328,24 @@ export function SummaryDetailPage({ summaryId, onNavigateHome, onNavigateSummari
               <MessageCircle className="w-4 h-4" />
               <span>{summary.comments.length} תגובות</span>
             </div>
+            {summary.views !== undefined && (
+              <>
+                <span>•</span>
+                <div className="flex items-center gap-1">
+                  <Eye className="w-4 h-4" />
+                  <span>{summary.views} צפיות</span>
+                </div>
+              </>
+            )}
+            {summary.downloads !== undefined && (
+              <>
+                <span>•</span>
+                <div className="flex items-center gap-1">
+                  <Download className="w-4 h-4" />
+                  <span>{summary.downloads} הורדות</span>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Rating Section */}

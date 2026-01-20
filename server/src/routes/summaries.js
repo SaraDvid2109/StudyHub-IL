@@ -10,6 +10,10 @@ const azureStorage = require('../utils/azureStorage');
 
 const router = express.Router();
 
+// Track summary views to prevent double-counting
+const viewTracking = new Map();
+const VIEW_COOLDOWN = 60000; // 1 minute cooldown per user per summary
+
 // Helper function to calculate average rating
 const calculateAverageRating = (ratings) => {
   if (ratings.length === 0) return null;
@@ -137,6 +141,33 @@ router.get('/:id', optionalAuth, async (req, res) => {
 
     if (!summary) {
       return res.status(404).json({ error: 'סיכום לא נמצא' });
+    }
+
+    // Track view with cooldown to prevent double-counting
+    const viewKey = `${req.user?.id || req.ip}-${id}`;
+    const now = Date.now();
+    const lastView = viewTracking.get(viewKey);
+    
+    if (!lastView || now - lastView > VIEW_COOLDOWN) {
+      viewTracking.set(viewKey, now);
+      
+      // Update view count
+      await prisma.summary.update({
+        where: { id: parseInt(id) },
+        data: { views: { increment: 1 } }
+      });
+      
+      summary.views = (summary.views || 0) + 1;
+      
+      // Clean up old tracking entries
+      if (viewTracking.size > 10000) {
+        const entries = Array.from(viewTracking.entries());
+        entries.forEach(([key, time]) => {
+          if (now - time > VIEW_COOLDOWN * 2) {
+            viewTracking.delete(key);
+          }
+        });
+      }
     }
 
     res.json(summary);
@@ -330,6 +361,12 @@ router.get('/:id/download', optionalAuth, async (req, res) => {
     if (!summary) {
       return res.status(404).json({ error: 'סיכום לא נמצא' });
     }
+
+    // Increment download count
+    await prisma.summary.update({
+      where: { id: parseInt(id) },
+      data: { downloads: { increment: 1 } }
+    });
 
     if (azureStorage.isConfigured()) {
       // Return Azure blob URL
