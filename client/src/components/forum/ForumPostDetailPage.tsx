@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 import { useState, useEffect, useRef } from 'react';
-import { ChevronRight, Home, MessageCircle, Send, User, CheckCircle2, Star, ArrowUp, ArrowDown } from 'lucide-react';
+import { ChevronRight, Home, MessageCircle, Send, User, CheckCircle2, Star, ArrowUp, ArrowDown, Eye } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Textarea } from '../ui/textarea';
@@ -250,6 +250,10 @@ export function ForumPostDetailPage({ postId, onNavigateHome, onNavigateForum }:
                 )}
               </div>
               <div className="flex items-center gap-3 text-gray-500 text-sm">
+                <div className="flex items-center gap-1">
+                  <Eye className="w-4 h-4 text-blue-500" />
+                  <span>{post.views} צפיות</span>
+                </div>
                 <div className="flex items-center gap-1">
                   <MessageCircle className="w-4 h-4 text-blue-500" />
                   <span>{post.comments.length} תשובות</span>

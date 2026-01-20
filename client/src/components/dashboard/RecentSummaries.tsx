@@ -38,7 +38,7 @@ export function RecentSummaries({ summaries = [], onViewAll, onSummaryClick }: R
           return newSet;
         });
       } else {
-        await api.post('/favorites/summary', { summaryId });
+        await api.post(`/favorites/summary/${summaryId}`);
         setFavorites(prev => new Set(prev).add(summaryId));
       }
     } catch (error) {
@@ -46,22 +46,10 @@ export function RecentSummaries({ summaries = [], onViewAll, onSummaryClick }: R
     }
   };
 
-  const handleDownload = async (e: React.MouseEvent, summary: Summary) => {
+  const handleDownload = (e: React.MouseEvent, summaryId: number) => {
     e.stopPropagation();
-    try {
-      const response = await fetch(`http://localhost:4000${summary.filePath || ''}`);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${summary.title}.${summary.fileType.toLowerCase()}`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error('Error downloading file:', error);
-    }
+    // Navigate to summary page instead of downloading directly
+    onSummaryClick?.(summaryId);
   };
   if (summaries.length === 0) {
     return (
@@ -140,7 +128,7 @@ export function RecentSummaries({ summaries = [], onViewAll, onSummaryClick }: R
                 <div className="flex items-center gap-2">
                   <Button
                     size="sm"
-                    onClick={(e) => handleDownload(e, summary)}
+                    onClick={(e) => handleDownload(e, summary.id)}
                     className="bg-blue-600 hover:bg-blue-700 text-white"
                   >
                     <Download className="w-4 h-4 ml-1" />
