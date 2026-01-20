@@ -10,6 +10,10 @@ const azureStorage = require('../utils/azureStorage');
 
 const router = express.Router();
 
+// Track summary views to prevent double-counting
+const viewTracking = new Map();
+const VIEW_COOLDOWN = 60000; // 1 minute cooldown per user per summary
+
 // Helper function to calculate average rating
 const calculateAverageRating = (ratings) => {
   if (ratings.length === 0) return null;
@@ -122,8 +126,35 @@ router.get('/my-content', authenticate, async (req, res) => {
 router.get('/:id', optionalAuth, async (req, res) => {
   try {
     const { id } = req.params;
+    const summaryId = parseInt(id);
+
+    // Create a unique key for view tracking (userId or IP + summaryId)
+    const userId = req.user?.id || req.ip || 'anonymous';
+    const viewKey = `${userId}-${summaryId}`;
+    const now = Date.now();
+
+    // Check if this user/IP already viewed this summary recently
+    const lastView = viewTracking.get(viewKey);
+    const shouldIncrementView = !lastView || (now - lastView) > VIEW_COOLDOWN;
+
+    // Increment views only if cooldown period has passed
+    if (shouldIncrementView) {
+      await prisma.summary.update({
+        where: { id: summaryId },
+        data: { views: { increment: 1 } }
+      });
+      viewTracking.set(viewKey, now);
+      
+      // Clean up old entries (older than 2 minutes)
+      for (const [key, timestamp] of viewTracking.entries()) {
+        if (now - timestamp > VIEW_COOLDOWN * 2) {
+          viewTracking.delete(key);
+        }
+      }
+    }
+
     const summary = await prisma.summary.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: summaryId },
       include: {
         course: true,
         uploadedBy: { select: { id: true, fullName: true, email: true } },
@@ -322,14 +353,22 @@ router.delete('/:id', authenticate, async (req, res) => {
 router.get('/:id/download', optionalAuth, async (req, res) => {
   try {
     const { id } = req.params;
+    const summaryId = parseInt(id);
+    
     const summary = await prisma.summary.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: summaryId },
       select: { filePath: true, title: true }
     });
 
     if (!summary) {
       return res.status(404).json({ error: 'סיכום לא נמצא' });
     }
+
+    // Increment download counter
+    await prisma.summary.update({
+      where: { id: summaryId },
+      data: { downloads: { increment: 1 } }
+    });
 
     if (azureStorage.isConfigured()) {
       // Return Azure blob URL

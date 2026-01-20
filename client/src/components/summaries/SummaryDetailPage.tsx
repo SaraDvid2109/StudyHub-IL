@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 import { useState, useEffect } from 'react';
-import { ChevronRight, Home, FileText, Download, Star, MessageCircle, Send, User } from 'lucide-react';
+import { ChevronRight, Home, FileText, Download, Star, MessageCircle, Send, User, Eye, Heart } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Textarea } from '../ui/textarea';
@@ -25,6 +25,8 @@ interface Summary {
   filePath: string;
   uploadDate: string;
   avgRating: number | null;
+  views: number;
+  downloads: number;
   course: {
     id: number;
     courseCode: string;
@@ -59,6 +61,8 @@ export function SummaryDetailPage({ summaryId, onNavigateHome, onNavigateSummari
   const [hoverRating, setHoverRating] = useState<number | null>(null);
   const [ratingSubmitting, setRatingSubmitting] = useState(false);
   const [totalRatings, setTotalRatings] = useState(0);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favoritesLoading, setFavoritesLoading] = useState(false);
 
   // Helper to get initials from name
   const getInitials = (name: string) => {
@@ -100,6 +104,17 @@ export function SummaryDetailPage({ summaryId, onNavigateHome, onNavigateSummari
           } catch (err) {
             console.error('Error fetching rating:', err);
           }
+
+          // Check if summary is in favorites
+          try {
+            const favoritesResponse = await api.get('/favorites');
+            const isFav = favoritesResponse.data.some(
+              (fav: any) => fav.summaryId === parseInt(summaryId)
+            );
+            setIsFavorite(isFav);
+          } catch (err) {
+            console.error('Error fetching favorites:', err);
+          }
         }
         
         setError(null);
@@ -138,6 +153,30 @@ export function SummaryDetailPage({ summaryId, onNavigateHome, onNavigateSummari
       alert(err.response?.data?.error || 'שגיאה בשמירת דירוג');
     } finally {
       setRatingSubmitting(false);
+    }
+  };
+
+  // Handle favorites toggle
+  const handleFavoriteToggle = async () => {
+    if (!user) {
+      alert('יש להתחבר כדי להוסיף למועדפים');
+      return;
+    }
+
+    try {
+      setFavoritesLoading(true);
+      if (isFavorite) {
+        await api.delete(`/favorites/summary/${summaryId}`);
+        setIsFavorite(false);
+      } else {
+        await api.post(`/favorites/summary/${summaryId}`);
+        setIsFavorite(true);
+      }
+    } catch (err: any) {
+      console.error('Error toggling favorite:', err);
+      alert(err.response?.data?.error || 'שגיאה בעדכון מועדפים');
+    } finally {
+      setFavoritesLoading(false);
     }
   };
 
@@ -280,9 +319,34 @@ export function SummaryDetailPage({ summaryId, onNavigateHome, onNavigateSummari
             <span>{formatDate(summary.uploadDate)}</span>
             <span>•</span>
             <div className="flex items-center gap-1">
+              <Eye className="w-4 h-4" />
+              <span>{summary.views} צפיות</span>
+            </div>
+            <span>•</span>
+            <div className="flex items-center gap-1">
+              <Download className="w-4 h-4" />
+              <span>{summary.downloads} הורדות</span>
+            </div>
+            <span>•</span>
+            <div className="flex items-center gap-1">
               <MessageCircle className="w-4 h-4" />
               <span>{summary.comments.length} תגובות</span>
             </div>
+            {user && (
+              <>
+                <span>•</span>
+                <Button
+                  onClick={handleFavoriteToggle}
+                  disabled={favoritesLoading}
+                  variant="ghost"
+                  size="sm"
+                  className={`${isFavorite ? 'text-red-500' : 'text-gray-600'} hover:text-red-500`}
+                >
+                  <Heart className={`w-4 h-4 ml-1 ${isFavorite ? 'fill-red-500' : ''}`} />
+                  {isFavorite ? 'במועדפים' : 'הוסף למועדפים'}
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Rating Section */}

@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "summaries" ADD COLUMN "views" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "summaries" ADD COLUMN "downloads" INTEGER NOT NULL DEFAULT 0;

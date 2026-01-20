@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 import { useState } from 'react';
-import { Eye, Download, Heart, Star } from 'lucide-react';
+import { Eye, Heart, Star } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import api from '../../utils/api';
@@ -38,29 +38,11 @@ export function RecentSummaries({ summaries = [], onViewAll, onSummaryClick }: R
           return newSet;
         });
       } else {
-        await api.post('/favorites/summary', { summaryId });
+        await api.post(`/favorites/summary/${summaryId}`);
         setFavorites(prev => new Set(prev).add(summaryId));
       }
     } catch (error) {
       console.error('Error toggling favorite:', error);
-    }
-  };
-
-  const handleDownload = async (e: React.MouseEvent, summary: Summary) => {
-    e.stopPropagation();
-    try {
-      const response = await fetch(`http://localhost:4000${summary.filePath || ''}`);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${summary.title}.${summary.fileType.toLowerCase()}`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error('Error downloading file:', error);
     }
   };
   if (summaries.length === 0) {
@@ -138,14 +120,6 @@ export function RecentSummaries({ summaries = [], onViewAll, onSummaryClick }: R
               <div className="pt-4 border-t border-gray-100 flex items-center justify-between gap-2">
                 <span className="text-gray-500 text-sm">{summary.uploadDate}</span>
                 <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    onClick={(e) => handleDownload(e, summary)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    <Download className="w-4 h-4 ml-1" />
-                    הורדה
-                  </Button>
                   <Button
                     size="sm"
                     variant="outline"

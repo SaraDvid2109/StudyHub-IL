@@ -112,7 +112,13 @@ export function QuestionCard({ question, index, onClick }: QuestionCardProps) {
             <span className="text-xs font-medium">תשובות</span>
           </div>
 
-          {/* Views - Hidden per requirements */}
+          {/* Views */}
+          {question.views !== undefined && (
+            <div className="flex flex-col items-center gap-1.5 px-4 py-3 rounded-xl border-2 bg-gray-50 text-gray-600 border-gray-300 transition-all shadow-sm">
+              <span className="font-bold text-lg">{question.views}</span>
+              <span className="text-xs font-medium">צפיות</span>
+            </div>
+          )}
         </div>
 
         {/* Main Content (Right/Center) */}
