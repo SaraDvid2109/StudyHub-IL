@@ -18,6 +18,13 @@ interface Comment {
   };
 }
 
+interface Favorite {
+  id: number;
+  summaryId: number | null;
+  toolId: number | null;
+  createdAt: string;
+}
+
 interface Summary {
   id: number;
   title: string;
@@ -109,7 +116,7 @@ export function SummaryDetailPage({ summaryId, onNavigateHome, onNavigateSummari
           try {
             const favoritesResponse = await api.get('/favorites');
             const isFav = favoritesResponse.data.some(
-              (fav: any) => fav.summaryId === parseInt(summaryId)
+              (fav: Favorite) => fav.summaryId === parseInt(summaryId)
             );
             setIsFavorite(isFav);
           } catch (err) {
